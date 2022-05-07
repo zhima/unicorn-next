@@ -1,10 +1,16 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import MainIconImage from '../public/favicon.svg';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { styled } from '@mui/material/styles';
-import {breakpoint_md} from '../utils';
+import {breakpoint_md, formatAddress, getChainName} from '../utils';
 import Chip from '@mui/material/Chip';
+import { useSelector, useDispatch } from 'react-redux';
+import {connectWallet, disconnectWallet, web3Modal, CHAIN_ID, getWeb3Instance, getProvider} from '/utils/Web3Provider';
+import { useSnackbar } from 'notistack';
+
+const debounce = require('lodash/debounce');
 
 const NavHead = styled.nav`
   display: flex;
@@ -52,35 +58,161 @@ function MenuItem(props) {
 }
 
 const NavBar = () => {
+  const { enqueueSnackbar } = useSnackbar();
+  const app = useSelector(({ app }) => app);
+  const dispatch = useDispatch();
+  const clearListenersFuncRef = useRef(null);
+
+  useEffect(() => {
+    if (web3Modal.cachedProvider) {
+      connect();
+    }
+
+    return () => {
+      clearListenersFuncRef.current && clearListenersFuncRef.current();
+    };
+  }, []);
+
+  const connect = async () => {
+    try {
+      const {provider, signer, web3Instance} = await connectWallet();
+      const accounts = await provider.listAccounts();
+      const network = await provider.getNetwork();
+      const address = await signer.getAddress();
+      const ens = await provider.lookupAddress(address);
+      const avatar = await provider.getAvatar(address);
+      console.log('accounts:', accounts);
+      console.log('network:', network);
+      console.log('address:', address);
+      console.log('ens:', ens);
+      console.log('avatar:', avatar);
+
+      dispatch({
+        type: 'app/updateState', 
+        payload: {
+          accountName: ens || formatAddress(address), 
+          accountAddr: address
+        }
+      });
+
+      if (web3Instance?.on) {
+        console.log('provider on add event listener')
+        const handleAccountsChanged = async (accounts) => {
+          console.log('accounts changed:', accounts);
+          if (accounts.length > 0) {
+            const address = accounts[0];
+            try {
+              const ens = await provider.lookupAddress(address);
+              const avatar = await provider.getAvatar(address);
+              dispatch({
+                type: 'app/updateState', 
+                payload: {
+                  accountName: ens || formatAddress(address), 
+                  accountAddr: address
+                }
+              });
+            } catch (error) {
+              console.log('lookupAddress error:', error);
+            }
+          } else {
+            disconnect();
+          }
+          
+        };
+    
+        const handleChainChanged = debounce((chainId) => {
+          console.log('chain changed:', Number(chainId));
+          const chainIdStr = Number(chainId).toString();
+
+          if (chainIdStr !== CHAIN_ID) {
+            const currentChainName = getChainName(chainIdStr);
+            const supportChainName = getChainName(CHAIN_ID);
+            enqueueSnackbar(`不支持当前连接的${currentChainName}网络，请切换到${supportChainName}网络`, {variant: 'error'});
+          }
+        }, 500);
+    
+        const handleDisconnect = debounce((error) => {
+          
+          console.log('disconnect');
+          enqueueSnackbar('Network is disconnected', {variant: 'error'});
+        }, 500);
+    
+        web3Instance.on("accountsChanged", handleAccountsChanged);
+        web3Instance.on("chainChanged", handleChainChanged);
+        web3Instance.on("disconnect", handleDisconnect);
+
+        clearListenersFuncRef.current = () => {
+          if (web3Instance?.removeListener) {
+            web3Instance.removeListener("accountsChanged", handleAccountsChanged);
+            web3Instance.removeListener("chainChanged", handleChainChanged);
+            web3Instance.removeListener("disconnect", handleDisconnect);
+          }
+        };
+      }
+    } catch (error) {
+      console.log('error:', error);
+      disconnect();
+      enqueueSnackbar('Error connecting to wallet: ' + error, {variant: 'error'});
+    }
+  };
+
+  const disconnect = async () => {
+    try {
+      await disconnectWallet();
+      dispatch({
+        type: 'app/updateState', 
+        payload: {
+          accountName: '', 
+          accountAddr: ''
+        }
+      });
+    } catch (error) {
+      console.log('error:', error);
+      enqueueSnackbar('Error disconnecting from wallet: ' + error, {variant: 'error'});
+    }
+  }
+
+
+
   return (
-    <NavHead className="absolute top-0 left-0 w-full px-8 py-5">
-      <a href='/'>
-        <Image
-          src={MainIconImage}
-          alt="Picture of the author"
-          width={40}
-          height={40}
-        />
-        <h2 className='inline-block text-3xl text-black font-bold italic ml-2 align-top'>unicorn nft</h2>
-      </a>
+    <NavHead className="w-full px-8 py-5">
+      <Link href="/">
+        <span>
+          <Image
+            src={MainIconImage}
+            alt="Picture of the author"
+            width={40}
+            height={40}
+          />
+          <h2 className='inline-block text-3xl text-black font-bold italic ml-2 align-top'>unicorn nft</h2>
+        </span>
+      </Link>
       <MenuWrapper>
         <MenuItem elementId="mint">Mint铸造</MenuItem>
         <MenuItem elementId="faq">问与答</MenuItem>
       </MenuWrapper>
       <div>
-        <a href="https://github.com" className="mx-4">
+        <Link href="https://github.com">
           <GitHubIcon 
+            className="mx-4"
             fontSize='large'
           />
-        </a>
+        </Link>
         
-        <Chip 
-          label="连接钱包"
-          color="primary"
-          onClick={() => {
-
-          }}
-        />
+        {app.accountName ? (
+          <Chip 
+            label={app.accountName}
+            color="secondary"
+            onDelete={disconnect}
+          />
+        ) : (
+          <Chip 
+            label="连接钱包"
+            color="primary"
+            onClick={connect}
+          />
+        )}
+        
       </div>
       
     </NavHead>
