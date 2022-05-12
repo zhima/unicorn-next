@@ -1,11 +1,9 @@
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
-import MainnetContractABI from '/abi/mainnet.json';
-import RinkebyContractABI from '/abi/rinkeby.json';
+import ContractABI from '/abi/UniNFT.json';
 
 export const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID;
-const contractABI = CHAIN_ID === "1" ? MainnetContractABI : RinkebyContractABI;
 
 const providerOptions = {
   walletconnect: {
@@ -37,7 +35,7 @@ export async function connectWallet() {
     signer = provider.getSigner();
     contract = new ethers.Contract(
       process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
-      contractABI.abi,
+      ContractABI.abi,
       signer
     );
   }
@@ -58,4 +56,8 @@ export function getWeb3Instance() {
 
 export function getProvider() {
   return provider;
+}
+
+export function getContract() {
+  return contract;
 }

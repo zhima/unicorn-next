@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import Stack from '@mui/material/Stack';
 import Link from 'next/link';
 import { styled } from '@mui/material/styles';
@@ -12,6 +12,17 @@ import Box from '@mui/material/Box';
 import { useSnackbar } from 'notistack';
 import {default as cns} from "classnames";
 import { useSelector, useDispatch } from 'react-redux';
+import {getContract} from '/utils/Web3Provider';
+const { MerkleTree } = require('merkletreejs');
+import { ethers } from "ethers";
+const { keccak256 } = ethers.utils;
+
+const debounce = require('lodash/debounce');
+
+const accounts = [
+  '0xaE8BE7d8dB019B104156790A99bc46E25e9650c1',
+  '0x4f5B321a30026578C35e0c80Cfa5568979E8c604'
+]
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
   height: 10,
@@ -27,11 +38,59 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
 
 const Mint = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [status, setStatus] = useState(0);
+  const [curUserNumberMinted, setCurUserNumberMinted] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [maxSupply, setMaxSupply] = useState(0);
   const app = useSelector(({ app }) => app);
-
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const isConnected = Boolean(app.accountAddr);
+
+
+  useEffect(() => {
+    if (isConnected) {
+      const contract = getContract();
+
+      const refresh = async () => {
+        const curStatus = await contract.status();
+        const curUserNumberMinted = await contract.numberMinted(app.accountAddr);
+        const totalMinted = parseInt(await contract.totalSupply());
+        const maxSupply = parseInt(await contract.MAX_SUPPLY());
+
+        setStatus(curStatus);
+        setCurUserNumberMinted(curUserNumberMinted);
+        setProgress(totalMinted);
+        setMaxSupply(maxSupply);
+
+      };
+
+      refresh();
+
+      const onMinted = debounce(async (minter, amount) => {
+        console.log('onMinted minter:', minter);
+        console.log('onMinted amount:', amount);
+        const contract = getContract();
+        const curUserNumberMinted = await contract.numberMinted(app.accountAddr);
+        const totalMinted = parseInt(await contract.totalSupply());
+        setCurUserNumberMinted(curUserNumberMinted);
+        setProgress(totalMinted);
+      });
+      const onStatusChanged = debounce(async (status) => {
+        console.log('onStatusChanged status:', status);
+        setStatus(status);
+      });
+      contract.on("Minted", onMinted);
+      contract.on("StatusChanged", onStatusChanged);
+
+      return () => {
+        contract.off("Minted");
+        contract.off("StatusChanged");
+      }
+    }
+  }, [app.accountAddr])
+  
 
   const onAdd = () => {
     setQuantity((prev) => prev + 1);
@@ -52,42 +111,81 @@ const Mint = () => {
     // setTimeout(() => {
     //   setIsLoading(false);
     // }, 2000);
-    // ShowMessageDialog({
-    //   type: 'success',
-    //   title: "铸造成功",
-    //   body: (
-    //     <div>
-    //       <Link
-    //         href="https://etherscan.io"
-    //         target="_blank"
-    //         rel="noreferrer"
-    //       >
-    //         点击查看交易详情
-    //       </Link>
-    //       {" "}或者到{" "}
-    //       <Link
-    //         href="https://etherscan.io"
-    //         target="_blank"
-    //         rel="noreferrer"
-    //       >
-    //         OpenSea 查看
-    //       </Link>
-    //     </div>
-    //   )
-    // });
+    
   };
 
   
 
-  const onMint = () => {
+  const onClickMint = useCallback(async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-  }
+    const contract = getContract();
+    try {
+      if (status == 1) {
+        const leaves = accounts.map(account => keccak256(account));
+        const tree = new MerkleTree(leaves, keccak256, { sort: true });
+        const merkleProof = tree.getHexProof(keccak256(app.accountAddr));
+        const price = 0.02 * quantity;
+        const whitelistMintTx = await contract.whitelistMint(merkleProof, quantity,  {value: ethers.utils.parseEther(price.toString())});
+        await whitelistMintTx.wait();
+      } else {
+        const price = 0.02 * quantity;
+        const publicMintTx = await contract.mint(quantity,  {value: ethers.utils.parseEther(price.toString())});
+        await publicMintTx.wait();
+      }
+      ShowMessageDialog({
+        type: 'success',
+        title: "铸造成功",
+        body: (
+          <div>
+            <Link
+              href="https://etherscan.io"
+              target="_blank"
+              rel="noreferrer"
+            >
+              点击查看交易详情
+            </Link>
+            {" "}或者到{" "}
+            <Link
+              href="https://etherscan.io"
+              target="_blank"
+              rel="noreferrer"
+            >
+              OpenSea 查看
+            </Link>
+          </div>
+        )
+      });
+    } catch (error) {
+      //处理超出数量的 error、不在白名单的 error xxxxx
+      console.log('Mint error:', error);
+    }
+    setIsLoading(false);
+  }, [status, app.accountAddr]);
 
-  const isConnected = Boolean(app.accountName);
-  const mintButtonText = isConnected ? "铸造" : "请先连接钱包";
+  let mintButtonText = '';
+  let disabled = true;
+  if (isConnected) {
+    switch(status) {
+      case 0: {
+        mintButtonText = "尚未开始";
+        break;
+      }
+      case 3: {
+        mintButtonText = "已经结束";
+        break;
+      }
+      default: {
+        if (curUserNumberMinted >= 5) {
+          mintButtonText = "铸造已达上限";
+        } else {
+          mintButtonText = "铸造";
+          disabled = false;
+        }
+      }
+    }
+  } else {
+    mintButtonText = "请先连接钱包";
+  }
 
   return (
     <div id='mint' className="w-full min-h-screen bg-[#f8f9fa]	 flex flex-col items-center justify-start">
@@ -140,10 +238,10 @@ const Mint = () => {
             width: 180
           }}
           className='bg-red mt-32 w-32'
-          onClick={onMint}
+          onClick={onClickMint}
           loading={isLoading}
           variant="contained"
-          disabled={!isConnected}
+          disabled={disabled}
         >
           {mintButtonText}
         </LoadingButton>
