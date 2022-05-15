@@ -44,7 +44,7 @@ const Mint = () => {
   const [progress, setProgress] = useState(0);
   const [maxSupply, setMaxSupply] = useState(0);
   const app = useSelector(({ app }) => app);
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
   const isConnected = Boolean(app.accountAddr);
 
@@ -55,12 +55,12 @@ const Mint = () => {
 
       const refresh = async () => {
         const curStatus = await contract.status();
+        setStatus(curStatus);
         const curUserNumberMinted = await contract.numberMinted(app.accountAddr);
+        setCurUserNumberMinted(curUserNumberMinted);
+
         const totalMinted = parseInt(await contract.totalSupply());
         const maxSupply = parseInt(await contract.MAX_SUPPLY());
-
-        setStatus(curStatus);
-        setCurUserNumberMinted(curUserNumberMinted);
         setProgress(totalMinted);
         setMaxSupply(maxSupply);
 
@@ -70,17 +70,17 @@ const Mint = () => {
 
       const onMinted = debounce(async (minter, amount) => {
         console.log('onMinted minter:', minter);
-        console.log('onMinted amount:', amount);
+        console.log('onMinted amount:', amount.toNumber());
         const contract = getContract();
         const curUserNumberMinted = await contract.numberMinted(app.accountAddr);
         const totalMinted = parseInt(await contract.totalSupply());
         setCurUserNumberMinted(curUserNumberMinted);
         setProgress(totalMinted);
-      });
+      }, 1000);
       const onStatusChanged = debounce(async (status) => {
         console.log('onStatusChanged status:', status);
         setStatus(status);
-      });
+      }, 1000);
       contract.on("Minted", onMinted);
       contract.on("StatusChanged", onStatusChanged);
 
@@ -104,17 +104,6 @@ const Mint = () => {
       return 1;
     });
   }
-
-  const handleClick = () => {
-    enqueueSnackbar('Error connecting to wallet: ', {variant: 'error'});
-    // setIsLoading(true);
-    // setTimeout(() => {
-    //   setIsLoading(false);
-    // }, 2000);
-    
-  };
-
-  
 
   const onClickMint = useCallback(async () => {
     setIsLoading(true);
@@ -157,10 +146,19 @@ const Mint = () => {
       });
     } catch (error) {
       //处理超出数量的 error、不在白名单的 error xxxxx
-      console.log('Mint error:', error);
+      console.log('Mint error:', error.message);
+      const errMsg = error.message;
+      if (errMsg) {
+        if (errMsg.includes('UC-N: exceed the max limit of each account')) {
+          enqueueSnackbar('铸造的数量超出每个账号的最大限制', {variant: 'error'});
+        } else if (errMsg.includes('')) {
+  
+        }
+      }
+      
     }
     setIsLoading(false);
-  }, [status, app.accountAddr]);
+  }, [status, app.accountAddr, quantity]);
 
   let mintButtonText = '';
   let disabled = true;
@@ -175,7 +173,10 @@ const Mint = () => {
         break;
       }
       default: {
-        if (curUserNumberMinted >= 5) {
+        if (progress >= maxSupply) {
+          mintButtonText = "已经售罄";
+        }
+        else if (curUserNumberMinted >= 5) {
           mintButtonText = "铸造已达上限";
         } else {
           mintButtonText = "铸造";
@@ -187,24 +188,26 @@ const Mint = () => {
     mintButtonText = "请先连接钱包";
   }
 
+  const progressValue = maxSupply > 0 ? progress / maxSupply : 0;
+
   return (
     <div id='mint' className="w-full min-h-screen bg-[#f8f9fa]	 flex flex-col items-center justify-start">
-      <h2 className='text-yellow-700 text-5xl font-bold mt-10'>
+      <h2 className='text-yellow-700 text-4xl lg:text-5xl font-bold mt-10'>
         Mint 铸造
       </h2>
-      <p className='bg-[#d3e5ec] border-2 border-[#bbd9e2] rounded-md w-1/2 text-center mt-8 h-12 leading-10'>
-        每个售价0.01ETH，每个钱包最多可铸造2个NFT。
+      <p className='bg-[#d3e5ec] border-2 border-[#bbd9e2] rounded-md w-1/2 text-center text-sm lg:text-base mt-8 h-10 lg:h-12 leading-10'>
+        每个售价0.01ETH，每个钱包最多可铸造5个NFT
       </p>
       <div className="flex flex-col items-center justify-center flex-1 p-6 m-10 w-1/2 bg-clip-border bg-white border-2 border-gray rounded-xl border-dashed">
         <Stack spacing={2} direction="row" alignItems="center">
-          <span className='text-black '>
+          <span className='text-black text-xs lg:text-base'>
             铸造进度：
           </span>
-          <Box sx={{ minWidth: 250 }}>
-            <BorderLinearProgress variant="determinate" value={50} />
+          <Box sx={{ minWidth: 150 }}>
+            <BorderLinearProgress variant="determinate" value={progressValue} />
           </Box>
-          <span className='text-black '>
-            10/1000
+          <span className='text-black text-xs lg:text-base'>
+            {progress}/{maxSupply}
           </span>
         </Stack>
         <Stack spacing={2} direction="row" className='mt-16'>
@@ -232,19 +235,19 @@ const Mint = () => {
           {mintButtonText}
         </button> */}
         <LoadingButton
-          size="large"
-          sx={{
-            m: 4,
-            width: 180
-          }}
-          className='bg-red mt-32 w-32'
-          onClick={onClickMint}
-          loading={isLoading}
-          variant="contained"
-          disabled={disabled}
-        >
-          {mintButtonText}
-        </LoadingButton>
+            size="large"
+            sx={{
+              m: 4,
+              width: 180
+            }}
+            color="secondary"
+            onClick={onClickMint}
+            loading={isLoading}
+            variant="contained"
+            disabled={disabled}
+          >
+            {mintButtonText}
+          </LoadingButton>
         <p className='text-center text-black my-4'>
           请移步到{" "}
           <Link

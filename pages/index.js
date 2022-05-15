@@ -1,16 +1,10 @@
-import React, {useEffect, memo} from 'react';
+import React from 'react';
 import Head from 'next/head'
-
-
 import Home from '../components/Home';
 import Mint from '../components/Mint';
 import FAQ from '../components/FAQ';
 
 function App() {
-  useEffect(() => {
-    console.log('Home useEffect');
-  }, []);
-
   return (
     <div>
       <Head>

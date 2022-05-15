@@ -1,7 +1,6 @@
 export default {
   namespace: 'app',
   state: {
-    accountName: '',
     accountAddr: '',
   },
   reducers: {

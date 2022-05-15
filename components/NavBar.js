@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import MainIconImage from '../public/favicon.svg';
@@ -62,6 +62,7 @@ const NavBar = () => {
   const app = useSelector(({ app }) => app);
   const dispatch = useDispatch();
   const clearListenersFuncRef = useRef(null);
+  const [accountName, setAccountName] = useState(null);
 
   useEffect(() => {
     if (web3Modal.cachedProvider) {
@@ -87,10 +88,10 @@ const NavBar = () => {
       console.log('ens:', ens);
       console.log('avatar:', avatar);
 
+      setAccountName(ens || formatAddress(address));
       dispatch({
         type: 'app/updateState', 
         payload: {
-          accountName: ens || formatAddress(address), 
           accountAddr: address
         }
       });
@@ -104,10 +105,10 @@ const NavBar = () => {
             try {
               const ens = await provider.lookupAddress(address);
               const avatar = await provider.getAvatar(address);
+              setAccountName(ens || formatAddress(address));
               dispatch({
                 type: 'app/updateState', 
                 payload: {
-                  accountName: ens || formatAddress(address), 
                   accountAddr: address
                 }
               });
@@ -143,6 +144,7 @@ const NavBar = () => {
 
         clearListenersFuncRef.current = () => {
           if (web3Instance?.removeListener) {
+            console.log('provider on remove event listener')
             web3Instance.removeListener("accountsChanged", handleAccountsChanged);
             web3Instance.removeListener("chainChanged", handleChainChanged);
             web3Instance.removeListener("disconnect", handleDisconnect);
@@ -162,10 +164,10 @@ const NavBar = () => {
       dispatch({
         type: 'app/updateState', 
         payload: {
-          accountName: '', 
           accountAddr: ''
         }
       });
+      setAccountName(null);
     } catch (error) {
       console.log('error:', error);
       enqueueSnackbar('Error disconnecting from wallet: ' + error, {variant: 'error'});
@@ -199,9 +201,9 @@ const NavBar = () => {
           />
         </Link>
         
-        {app.accountName ? (
+        {accountName ? (
           <Chip 
-            label={app.accountName}
+            label={accountName}
             color="secondary"
             onDelete={disconnect}
           />
