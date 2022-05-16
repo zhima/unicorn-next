@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import Web3Modal from "web3modal";
 import ContractABI from '/abi/UniNFT.json';
 
-export const CHAIN_ID = process.env.NEXT_PUBLIC_CHAIN_ID;
+export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
 
 const providerOptions = {
   walletconnect: {
@@ -17,7 +17,7 @@ const providerOptions = {
 export let web3Modal;
 if (typeof window !== 'undefined') {
   web3Modal = new Web3Modal({
-    network: process.env.NEXT_PUBLIC_CHAIN_ID === "1" ? "mainnet" : "rinkeby", // optional
+    network: CHAIN_ID === 1 ? "mainnet" : "rinkeby", // optional
     cacheProvider: true, // optional
     providerOptions // required
   });

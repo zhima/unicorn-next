@@ -1,17 +1,16 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import Stack from '@mui/material/Stack';
-import Link from 'next/link';
 import { styled } from '@mui/material/styles';
-import SendIcon from '@mui/icons-material/Send';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import ShowMessageDialog from '/components/ShowMessageDialog';
+import Link from '@mui/material/Link';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
 import { useSnackbar } from 'notistack';
 import {default as cns} from "classnames";
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {getContract} from '/utils/Web3Provider';
 const { MerkleTree } = require('merkletreejs');
 import { ethers } from "ethers";
@@ -121,26 +120,29 @@ const Mint = () => {
         const publicMintTx = await contract.mint(quantity,  {value: ethers.utils.parseEther(price.toString())});
         await publicMintTx.wait();
       }
+      const etherscanAddr = "https://rinkeby.etherscan.io/address/" + process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
       ShowMessageDialog({
         type: 'success',
         title: "铸造成功",
         body: (
           <div>
+            点击查看{" "}
             <Link
-              href="https://etherscan.io"
+              href={etherscanAddr}
               target="_blank"
               rel="noreferrer"
             >
-              点击查看交易详情
+              交易详情
             </Link>
             {" "}或者到{" "}
             <Link
-              href="https://etherscan.io"
+              href="https://testnets.opensea.io/account"
               target="_blank"
               rel="noreferrer"
             >
-              OpenSea 查看
+              OpenSea 
             </Link>
+            {" "}查看
           </div>
         )
       });
@@ -195,7 +197,7 @@ const Mint = () => {
       <h2 className='text-yellow-700 text-4xl lg:text-5xl font-bold mt-10'>
         Mint 铸造
       </h2>
-      <p className='bg-[#d3e5ec] border-2 border-[#bbd9e2] rounded-md w-1/2 text-center text-sm lg:text-base mt-8 h-10 lg:h-12 leading-10'>
+      <p className='bg-[#d3e5ec] border-2 border-[#bbd9e2] rounded-md w-1/2 text-center text-sm lg:text-base mt-8 h-10 lg:h-12 leading-[2.5rem] lg:leading-[3rem]'>
         每个售价0.01ETH，每个钱包最多可铸造5个NFT
       </p>
       <div className="flex flex-col items-center justify-center flex-1 p-6 m-10 w-1/2 bg-clip-border bg-white border-2 border-gray rounded-xl border-dashed">
@@ -225,34 +227,37 @@ const Mint = () => {
             +
           </button>
         </Stack>
-        {/* <button
+        <button
           className={cns(
-            'block mt-8 p-3 rounded-md text-center w-40',
-            isConnected ?  'bg-blue-600 text-white'  :  'bg-[#eee] text-[#999] cursor-not-allowed'
+            'block mt-8 p-3 rounded-md text-center w-44 h-12',
+            (disabled | isLoading) ? 'bg-[#eee] text-[#999] cursor-not-allowed' : 'bg-blue-600 text-white'  
           )}
-          disabled={!isConnected}
+          onClick={onClickMint}
+          disabled={disabled}
+        >
+          
+          {isLoading ? (
+            <CircularProgress sx={{ color: 'grey.600' }} size={'1.3rem'} />
+          ) : mintButtonText}
+        </button>
+        {/* <LoadingButton
+          size="large"
+          sx={{
+            m: 4,
+            width: 180,
+            color: 'primary.main'
+          }}
+          onClick={onClickMint}
+          loading={isLoading}
+          variant="contained"
+          disabled={disabled}
         >
           {mintButtonText}
-        </button> */}
-        <LoadingButton
-            size="large"
-            sx={{
-              m: 4,
-              width: 180
-            }}
-            color="secondary"
-            onClick={onClickMint}
-            loading={isLoading}
-            variant="contained"
-            disabled={disabled}
-          >
-            {mintButtonText}
-          </LoadingButton>
+        </LoadingButton> */}
         <p className='text-center text-black my-4'>
-          请移步到{" "}
+          所有已铸造的 NFT 请移步到{" "}
           <Link
-            className='text-2xl font-bold text-blue-600'
-            href='https://opensea.io'
+            href='https://testnets.opensea.io/collection/unicorn-nft-v2'
             target={'_blank'}
             rel="noreferrer"
           >
