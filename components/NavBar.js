@@ -87,6 +87,14 @@ const NavBar = () => {
       console.log('address:', address);
       console.log('ens:', ens);
       console.log('avatar:', avatar);
+      
+      if (network.chainId != CHAIN_ID) {
+        const currentChainName = getChainName(network.chainId);
+        const supportChainName = getChainName(CHAIN_ID);
+        enqueueSnackbar(`不支持当前连接的${currentChainName}网络，请切换到${supportChainName}网络`, {variant: 'error'});
+        disconnect();
+        return;
+      }
 
       setAccountName(ens || formatAddress(address));
       dispatch({
@@ -122,21 +130,21 @@ const NavBar = () => {
         };
     
         const handleChainChanged = debounce((chainId) => {
-          console.log('chain changed:', Number(chainId));
-          const chainIdStr = Number(chainId).toString();
+          console.log('chain changed:', chainId);
 
-          if (chainIdStr !== CHAIN_ID) {
-            const currentChainName = getChainName(chainIdStr);
+          if (chainId !== CHAIN_ID) {
+            const currentChainName = getChainName(chainId);
             const supportChainName = getChainName(CHAIN_ID);
+            disconnect();
             enqueueSnackbar(`不支持当前连接的${currentChainName}网络，请切换到${supportChainName}网络`, {variant: 'error'});
           }
-        }, 500);
+        }, 1000);
     
         const handleDisconnect = debounce((error) => {
           
           console.log('disconnect');
           enqueueSnackbar('Network is disconnected', {variant: 'error'});
-        }, 500);
+        }, 1000);
     
         web3Instance.on("accountsChanged", handleAccountsChanged);
         web3Instance.on("chainChanged", handleChainChanged);
