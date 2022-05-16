@@ -198,7 +198,7 @@ const Mint = () => {
         Mint 铸造
       </h2>
       <p className='bg-[#d3e5ec] border-2 border-[#bbd9e2] rounded-md w-1/2 text-center text-sm lg:text-base mt-8 h-10 lg:h-12 leading-[2.5rem] lg:leading-[3rem]'>
-        每个售价0.01ETH，每个钱包最多可铸造5个NFT
+        每个售价 0.02 ETH，每个钱包最多可铸造 5 个NFT
       </p>
       <div className="flex flex-col items-center justify-center flex-1 p-6 m-10 w-1/2 bg-clip-border bg-white border-2 border-gray rounded-xl border-dashed">
         <Stack spacing={2} direction="row" alignItems="center">
@@ -255,7 +255,7 @@ const Mint = () => {
           {mintButtonText}
         </LoadingButton> */}
         <p className='text-center text-black my-4'>
-          所有已铸造的 NFT 请移步到{" "}
+          请移步到{" "}
           <Link
             href='https://testnets.opensea.io/collection/unicorn-nft-v2'
             target={'_blank'}
@@ -263,7 +263,7 @@ const Mint = () => {
           >
             OpenSea
           </Link> 
-          {" "}上查看
+          {" "}上查看已铸造的 NFT 
         </p>
       </div>
 

@@ -129,9 +129,9 @@ const NavBar = () => {
           
         };
     
-        const handleChainChanged = debounce((chainId) => {
-          console.log('chain changed:', chainId);
-
+        const handleChainChanged = debounce((chainIdStr) => {
+          console.log('chain changed:', chainIdStr);
+          const chainId = Number(chainIdStr);
           if (chainId !== CHAIN_ID) {
             const currentChainName = getChainName(chainId);
             const supportChainName = getChainName(CHAIN_ID);
