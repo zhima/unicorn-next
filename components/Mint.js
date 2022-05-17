@@ -12,16 +12,9 @@ import { useSnackbar } from 'notistack';
 import {default as cns} from "classnames";
 import { useSelector } from 'react-redux';
 import {getContract} from '/utils/Web3Provider';
-const { MerkleTree } = require('merkletreejs');
 import { ethers } from "ethers";
-const { keccak256 } = ethers.utils;
 
 const debounce = require('lodash/debounce');
-
-const accounts = [
-  '0xaE8BE7d8dB019B104156790A99bc46E25e9650c1',
-  '0x4f5B321a30026578C35e0c80Cfa5568979E8c604'
-]
 
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
   height: 10,
@@ -104,14 +97,24 @@ const Mint = () => {
     });
   }
 
+  const getMerkleProof = async (leaf) => {
+    const response = await fetch(`/api/merkleProof?leaf=${leaf}`, {
+      method: "GET",
+    });
+
+    const respJson = await response.json();
+    if (!response.ok) {
+      throw new Error(`Error: ${respJson?.msg ?? response.status}`);
+    }
+    return respJson;
+  }
+
   const onClickMint = useCallback(async () => {
     setIsLoading(true);
     const contract = getContract();
     try {
       if (status == 1) {
-        const leaves = accounts.map(account => keccak256(account));
-        const tree = new MerkleTree(leaves, keccak256, { sort: true });
-        const merkleProof = tree.getHexProof(keccak256(app.accountAddr));
+        const merkleProof = await getMerkleProof(app.accountAddr);
         const price = 0.02 * quantity;
         const whitelistMintTx = await contract.whitelistMint(merkleProof, quantity,  {value: ethers.utils.parseEther(price.toString())});
         await whitelistMintTx.wait();
