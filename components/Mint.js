@@ -199,6 +199,8 @@ const Mint = () => {
     mintButtonText = "请先连接钱包";
   }
 
+  disabled = disabled || isLoading;
+
   const progressValue = maxSupply > 0 ? progress / maxSupply : 0;
 
   return (
@@ -239,7 +241,7 @@ const Mint = () => {
         <button
           className={cns(
             'block mt-8 p-3 rounded-md text-center w-44 h-12',
-            (disabled | isLoading) ? 'bg-[#eee] text-[#999] cursor-not-allowed' : 'bg-blue-600 text-white'  
+            disabled ? 'bg-[#eee] text-[#999] cursor-not-allowed' : 'bg-blue-600 text-white'  
           )}
           onClick={onClickMint}
           disabled={disabled}
