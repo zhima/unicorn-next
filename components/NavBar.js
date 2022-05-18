@@ -82,11 +82,11 @@ const NavBar = () => {
       const address = await signer.getAddress();
       const ens = await provider.lookupAddress(address);
       const avatar = await provider.getAvatar(address);
-      console.log('accounts:', accounts);
-      console.log('network:', network);
-      console.log('address:', address);
-      console.log('ens:', ens);
-      console.log('avatar:', avatar);
+      // console.log('accounts:', accounts);
+      // console.log('network:', network);
+      // console.log('address:', address);
+      // console.log('ens:', ens);
+      // console.log('avatar:', avatar);
       
       if (network.chainId != CHAIN_ID) {
         const currentChainName = getChainName(network.chainId);
@@ -130,7 +130,6 @@ const NavBar = () => {
         };
     
         const handleChainChanged = debounce((chainIdStr) => {
-          console.log('chain changed:', chainIdStr);
           const chainId = Number(chainIdStr);
           if (chainId !== CHAIN_ID) {
             const currentChainName = getChainName(chainId);
@@ -141,8 +140,6 @@ const NavBar = () => {
         }, 1000);
     
         const handleDisconnect = debounce((error) => {
-          
-          console.log('disconnect');
           enqueueSnackbar('Network is disconnected', {variant: 'error'});
         }, 1000);
     

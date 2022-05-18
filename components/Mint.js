@@ -48,11 +48,11 @@ const Mint = () => {
       const refresh = async () => {
         const curStatus = await contract.status();
         setStatus(curStatus);
-        const curUserNumberMinted = await contract.numberMinted(app.accountAddr);
-        setCurUserNumberMinted(curUserNumberMinted);
+        const numberMinted = await contract.numberMinted(app.accountAddr);
+        setCurUserNumberMinted(numberMinted.toNumber());
 
-        const totalMinted = parseInt(await contract.totalSupply());
-        const maxSupply = parseInt(await contract.MAX_SUPPLY());
+        const totalMinted = (await contract.totalSupply()).toNumber();
+        const maxSupply = (await contract.MAX_SUPPLY()).toNumber();
         setProgress(totalMinted);
         setMaxSupply(maxSupply);
 
@@ -61,12 +61,11 @@ const Mint = () => {
       refresh();
 
       const onMinted = debounce(async (minter, amount) => {
-        console.log('onMinted minter:', minter);
         console.log('onMinted amount:', amount.toNumber());
         const contract = getContract();
-        const curUserNumberMinted = await contract.numberMinted(app.accountAddr);
-        const totalMinted = parseInt(await contract.totalSupply());
-        setCurUserNumberMinted(curUserNumberMinted);
+        const numberMinted = await contract.numberMinted(app.accountAddr);
+        const totalMinted = (await contract.totalSupply()).toNumber();
+        setCurUserNumberMinted(numberMinted.toNumber());
         setProgress(totalMinted);
       }, 1000);
       const onStatusChanged = debounce(async (status) => {
@@ -150,14 +149,21 @@ const Mint = () => {
         )
       });
     } catch (error) {
-      //处理超出数量的 error、不在白名单的 error xxxxx
       console.log('Mint error:', error.message);
       const errMsg = error.message;
       if (errMsg) {
         if (errMsg.includes('UC-N: exceed the max limit of each account')) {
           enqueueSnackbar('铸造的数量超出每个账号的最大限制', {variant: 'error'});
-        } else if (errMsg.includes('')) {
-  
+        } else if (errMsg.includes('UC-N: Invalid merkle proof')) {
+          enqueueSnackbar('你不在白名单内，无法铸造', {variant: 'error'});
+        } else if (errMsg.includes('UC-N: not able to mint yet')) {
+          enqueueSnackbar('项目未开始，无法铸造', {variant: 'error'});
+        } else if (errMsg.includes('UC-N: exceed the total token amount')) {
+          enqueueSnackbar('你要铸造的数量超过了项目总量', {variant: 'error'});
+        } else if (errMsg.includes('UC-N: Not engouth ETH sent')) {
+          enqueueSnackbar('ETH 不够', {variant: 'error'});
+        } else {
+          enqueueSnackbar('铸造失败', {variant: 'error'});
         }
       }
       
@@ -204,11 +210,11 @@ const Mint = () => {
         每个售价 0.02 ETH，每个钱包最多可铸造 5 个NFT
       </p>
       <div className="flex flex-col items-center justify-center flex-1 p-6 m-10 w-1/2 bg-clip-border bg-white border-2 border-gray rounded-xl border-dashed">
-        <Stack spacing={2} direction="row" alignItems="center">
+        <Stack className='self-stretch lg:mx-20' spacing={2} direction="row" alignItems="center">
           <span className='text-black text-xs lg:text-base'>
             铸造进度：
           </span>
-          <Box sx={{ minWidth: 150 }}>
+          <Box sx={{ flex: 1 }}>
             <BorderLinearProgress variant="determinate" value={progressValue} />
           </Box>
           <span className='text-black text-xs lg:text-base'>
@@ -243,21 +249,7 @@ const Mint = () => {
             <CircularProgress sx={{ color: 'grey.600' }} size={'1.3rem'} />
           ) : mintButtonText}
         </button>
-        {/* <LoadingButton
-          size="large"
-          sx={{
-            m: 4,
-            width: 180,
-            color: 'primary.main'
-          }}
-          onClick={onClickMint}
-          loading={isLoading}
-          variant="contained"
-          disabled={disabled}
-        >
-          {mintButtonText}
-        </LoadingButton> */}
-        <p className='text-center text-black my-4'>
+        <p className='text-center text-black my-8'>
           请移步到{" "}
           <Link
             href='https://testnets.opensea.io/collection/unicorn-nft-v2'
@@ -269,13 +261,6 @@ const Mint = () => {
           {" "}上查看已铸造的 NFT 
         </p>
       </div>
-
-      {/* <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop> */}
     </div>
   )
 }

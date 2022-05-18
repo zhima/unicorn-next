@@ -82,7 +82,7 @@ const FAQ = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Typography variant="body2">
-                项目还没开始或者你的铸造数量已到达上线
+                项目还没开始或者你的铸造数量已到达上限
               </Typography>
             </AccordionDetails>
           </Accordion>
