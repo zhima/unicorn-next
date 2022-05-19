@@ -199,7 +199,7 @@ const NavBar = () => {
         <MenuItem elementId="faq">问与答</MenuItem>
       </MenuWrapper>
       <div>
-        <Link href="https://github.com">
+        <Link href="https://github.com/zhima/unicorn-next">
           <GitHubIcon 
             className="mx-4"
             fontSize='large'
