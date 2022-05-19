@@ -1,34 +1,39 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Unicorn NFT
+===============
+## 介绍
 
-## Getting Started
+本项目是 Unicorn NFT 的前端项目，受[国产良心](https://github.com/GuoChanLiangXin/gclx-official)项目的启发，以学习为目的而创建，部分代码参考自[国产良心](https://github.com/GuoChanLiangXin/gclx-official)项目，在此基础上进行了扩展。
 
-First, run the development server:
+
+## 安装运行
+
+首先要把 .env.example 文件重命名为 .env.local，然后在该文件中填入需要的环境变量，Next.js 框架运行时会自动读取该文件的环境变量。
+
+依次运行以下命令
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+用浏览器打开 [http://localhost:3000](http://localhost:3000) 就能看到本项目的页面了。
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## 发布部署
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+本项目是基于 Next.js 框架开发的，而且用到了该框架的 [API routes](https://nextjs.org/docs/api-routes/introduction) 特性，所以最适合的部署方式是使用创建 Next.js 框架的前端部署服务 [Vercel](https://vercel.com/) - 前期免费 100GB 流量，付费版 20 USD 1T 流量，自带 CDN 全球都很快，提供免费子域名。支持 Next.js 自动集成部署，只要导入你的 github 仓库，每次推送修改到 github 都会自动重新部署。
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+注意在 Vercel 创建项目时需要在 Environment Variable 中添加 .env.local 的环境变量。
 
-## Learn More
+## 技术和组件
 
-To learn more about Next.js, take a look at the following resources:
+- [Next.js](https://nextjs.org/) - 开源的 React 开发框架，包括约定式路由、API Routes、SSR/SSG等特性。
+- [ethers.js](https://github.com/ethers-io/ethers.js/) - 用于连接 ethereum 节点的开源库，是跟区块链交互的入口。
+- [web3modal](https://github.com/Web3Modal/web3modal) - 用于连接钱包的开源 React 组件。
+- [MUI](https://mui.com/) - 基于 Material Design 的 React 开源组件库。
+- [tailwindcss](https://tailwindcss.com/) - 流行的 css 原子样式库。
+- [styled-components](https://emotion.sh/docs/styled) - 创建自定义样式组件的开源库。
+- [Dva](https://dvajs.com/guide/getting-started.html) - 集成了 redux 和 redux-saga 的状态管理工具。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 白名单（Whiltelist）功能说明
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+本项目通过 Merkle Tree 实现白名单功能，当合约处于预售状态时，会通过 api 接口获取当前连接的钱包地址的 Merkle Proof，然后调用合约的预售接口进行验证和 mint。
