@@ -2,8 +2,11 @@ Unicorn NFT
 ===============
 ## 介绍
 
-本项目是 Unicorn NFT 的前端项目，受[国产良心](https://github.com/GuoChanLiangXin/gclx-official)项目的启发，以学习为目的而创建，部分代码参考自[国产良心](https://github.com/GuoChanLiangXin/gclx-official)项目，在此基础上进行了扩展。
+本项目是 Unicorn NFT 的前端项目，受[国产良心](https://github.com/GuoChanLiangXin/gclx-official)项目的启发，以学习为目的而创建，部分代码参考自国产良心项目，在此基础上进行了扩展。
 
+本项目合约代码在 [unicorn-contract](https://github.com/zhima/unicorn-contract)。
+
+本项目已部署上线，点此[查看](https://unicorn-nft-next.vercel.app/)。
 
 ## 安装运行
 
