@@ -15,8 +15,8 @@ Unicorn NFT
 依次运行以下命令
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 用浏览器打开 [http://localhost:3000](http://localhost:3000) 就能看到本项目的页面了。
