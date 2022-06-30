@@ -6,9 +6,9 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import { styled } from '@mui/material/styles';
 import {breakpoint_md, formatAddress, getChainName} from '../utils';
 import Chip from '@mui/material/Chip';
-import { useSelector, useDispatch } from 'react-redux';
 import {connectWallet, disconnectWallet, web3Modal, CHAIN_ID, getWeb3Instance, getProvider} from '/utils/Web3Provider';
 import { useSnackbar } from 'notistack';
+import { useStore } from '/utils/StoreProvider';
 
 const debounce = require('lodash/debounce');
 
@@ -59,8 +59,7 @@ function MenuItem(props) {
 
 const NavBar = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const app = useSelector(({ app }) => app);
-  const dispatch = useDispatch();
+  const store = useStore();
   const clearListenersFuncRef = useRef(null);
   const [accountName, setAccountName] = useState(null);
 
@@ -97,12 +96,7 @@ const NavBar = () => {
       }
 
       setAccountName(ens || formatAddress(address));
-      dispatch({
-        type: 'app/updateState', 
-        payload: {
-          accountAddr: address
-        }
-      });
+      store.updateState(address);
 
       if (web3Instance?.on) {
         console.log('provider on add event listener')
@@ -114,12 +108,7 @@ const NavBar = () => {
               const ens = await provider.lookupAddress(address);
               const avatar = await provider.getAvatar(address);
               setAccountName(ens || formatAddress(address));
-              dispatch({
-                type: 'app/updateState', 
-                payload: {
-                  accountAddr: address
-                }
-              });
+              store.updateState(address);
             } catch (error) {
               console.log('lookupAddress error:', error);
             }
@@ -166,12 +155,7 @@ const NavBar = () => {
   const disconnect = async () => {
     try {
       await disconnectWallet();
-      dispatch({
-        type: 'app/updateState', 
-        payload: {
-          accountAddr: ''
-        }
-      });
+      store.updateState('');
       setAccountName(null);
     } catch (error) {
       console.log('error:', error);

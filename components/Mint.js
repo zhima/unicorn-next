@@ -1,8 +1,6 @@
 import React, {useEffect, useState, useCallback} from 'react';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
-import LoadingButton from '@mui/lab/LoadingButton';
-import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import ShowMessageDialog from '/components/ShowMessageDialog';
 import Link from '@mui/material/Link';
@@ -10,9 +8,10 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 import Box from '@mui/material/Box';
 import { useSnackbar } from 'notistack';
 import {default as cns} from "classnames";
-import { useSelector } from 'react-redux';
+import { useStore } from '/utils/StoreProvider';
 import {getContract} from '/utils/Web3Provider';
 import { ethers } from "ethers";
+import { observer } from 'mobx-react-lite';
 
 const debounce = require('lodash/debounce');
 
@@ -35,10 +34,10 @@ const Mint = () => {
   const [curUserNumberMinted, setCurUserNumberMinted] = useState(0);
   const [progress, setProgress] = useState(0);
   const [maxSupply, setMaxSupply] = useState(0);
-  const app = useSelector(({ app }) => app);
+  const store = useStore();
   const { enqueueSnackbar } = useSnackbar();
 
-  const isConnected = Boolean(app.accountAddr);
+  const isConnected = Boolean(store.accountAddr);
 
 
   useEffect(() => {
@@ -48,7 +47,7 @@ const Mint = () => {
       const refresh = async () => {
         const curStatus = await contract.status();
         setStatus(curStatus);
-        const numberMinted = await contract.numberMinted(app.accountAddr);
+        const numberMinted = await contract.numberMinted(store.accountAddr);
         setCurUserNumberMinted(numberMinted.toNumber());
 
         const totalMinted = (await contract.totalSupply()).toNumber();
@@ -63,7 +62,7 @@ const Mint = () => {
       const onMinted = debounce(async (minter, amount) => {
         console.log('onMinted amount:', amount.toNumber());
         const contract = getContract();
-        const numberMinted = await contract.numberMinted(app.accountAddr);
+        const numberMinted = await contract.numberMinted(store.accountAddr);
         const totalMinted = (await contract.totalSupply()).toNumber();
         setCurUserNumberMinted(numberMinted.toNumber());
         setProgress(totalMinted);
@@ -80,7 +79,7 @@ const Mint = () => {
         contract.off("StatusChanged");
       }
     }
-  }, [app.accountAddr])
+  }, [store.accountAddr])
   
 
   const onAdd = () => {
@@ -113,7 +112,7 @@ const Mint = () => {
     const contract = getContract();
     try {
       if (status == 1) {
-        const merkleProof = await getMerkleProof(app.accountAddr);
+        const merkleProof = await getMerkleProof(store.accountAddr);
         const price = 0.02 * quantity;
         const whitelistMintTx = await contract.whitelistMint(merkleProof, quantity,  {value: ethers.utils.parseEther(price.toString())});
         await whitelistMintTx.wait();
@@ -169,7 +168,7 @@ const Mint = () => {
       
     }
     setIsLoading(false);
-  }, [status, app.accountAddr, quantity]);
+  }, [status, store.accountAddr, quantity]);
 
   let mintButtonText = '';
   let disabled = true;
@@ -267,4 +266,4 @@ const Mint = () => {
   )
 }
 
-export default Mint
+export default observer(Mint);

@@ -35,7 +35,7 @@ pnpm dev
 - [MUI](https://mui.com/) - 基于 Material Design 的 React 开源组件库。
 - [tailwindcss](https://tailwindcss.com/) - 流行的 css 原子样式库。
 - [styled-components](https://emotion.sh/docs/styled) - 创建自定义样式组件的开源库。
-- [Dva](https://dvajs.com/guide/getting-started.html) - 集成了 redux 和 redux-saga 的状态管理工具。
+- [MobX](https://mobx.js.org/the-gist-of-mobx.html) - 一个简单和可扩展的状态管理库，用于跨组件的状态共享。
 
 ## 白名单（Whiltelist）功能说明
 

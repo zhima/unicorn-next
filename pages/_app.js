@@ -1,16 +1,15 @@
 import '../styles/globals.css'
 import { SnackbarProvider } from 'notistack';
-import { store } from '/utils/store';
-import { Provider } from 'react-redux';
+import { StoreProvider } from '/utils/StoreProvider';
 
 function MyApp({ Component, pageProps }) {
   
   return (
-    <Provider store={store}>
+    <StoreProvider {...pageProps}>
         <SnackbarProvider maxSnack={3}>
           <Component {...pageProps} />
         </SnackbarProvider>
-    </Provider>
+    </StoreProvider>
   );
 }
 

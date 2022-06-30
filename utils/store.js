@@ -1,35 +1,27 @@
-import { create } from 'dva-core';
-import appModel from '/models/app';
+import { action, observable, computed, runInAction, makeObservable } from 'mobx'
+import { enableStaticRendering } from 'mobx-react-lite'
 
+enableStaticRendering(typeof window === 'undefined')
 
-let store = null;
+export class Store {
+  accountAddr = ''
 
-function createStore() {
-  if (store) {
-    return store;
+  constructor() {
+    makeObservable(this, {
+      accountAddr: observable,
+      updateState: action,
+      hydrate: action,
+    })
   }
-    // model集合
-  const models = [appModel];
 
-  // 初始化dva
-  const app = create({
-    onHmr(...args) {
-      console.log('dva onHrm trigger', args);
-    },
-    onError(e) {
-      console.log('dva error', e);
-    },
-  });
+  updateState = (addr) => {
+    this.accountAddr = addr;
+  }
 
-  models.forEach(model => app.model(model));
 
-  // 启动
-  app.start();
+  hydrate = (data) => {
+    if (!data) return
 
-  store = app._store;
-  return store;
+    this.accountAddr = data.accountAddr !== null ? data.accountAddr : '';
+  }
 }
-
-createStore();
-
-export { store };
