@@ -5,6 +5,21 @@ import ContractABI from '/abi/UniNFT.json';
 
 export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
 
+const getNetworkName = () => {
+  switch (CHAIN_ID) {
+    case 1:
+      return 'mainnet';
+    case 4:
+      return 'rinkeby';
+    case 5:
+      return 'goerli';
+    case 11155111:
+      return 'sepolia';
+    default:
+      return 'mainnet'; // 1
+  }
+}
+
 const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider, // required
@@ -17,7 +32,7 @@ const providerOptions = {
 export let web3Modal;
 if (typeof window !== 'undefined') {
   web3Modal = new Web3Modal({
-    network: CHAIN_ID === 1 ? "mainnet" : "rinkeby", // optional
+    network: getNetworkName(), // optional
     cacheProvider: true, // optional
     providerOptions // required
   });

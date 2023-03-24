@@ -27,6 +27,8 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
   },
 }));
 
+const etherscanAddr = process.env.NEXT_PUBLIC_ETHERSCAN_ADDR + process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+
 const Mint = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -121,12 +123,11 @@ const Mint = () => {
         const publicMintTx = await contract.mint(quantity,  {value: ethers.utils.parseEther(price.toString())});
         await publicMintTx.wait();
       }
-      const etherscanAddr = "https://rinkeby.etherscan.io/address/" + process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
       ShowMessageDialog({
         type: 'success',
         title: "铸造成功",
         body: (
-          <div>
+          <div style={{minWidth: '240px'}}>
             点击查看{" "}
             <Link
               href={etherscanAddr}
@@ -135,15 +136,6 @@ const Mint = () => {
             >
               交易详情
             </Link>
-            {" "}或者到{" "}
-            <Link
-              href="https://testnets.opensea.io/account"
-              target="_blank"
-              rel="noreferrer"
-            >
-              OpenSea 
-            </Link>
-            {" "}查看
           </div>
         )
       });
@@ -253,11 +245,11 @@ const Mint = () => {
         <p className='text-center text-black my-8'>
           请移步到{" "}
           <Link
-            href='https://testnets.opensea.io/collection/unicorn-nft-v2'
+            href={etherscanAddr}
             target={'_blank'}
             rel="noreferrer"
           >
-            OpenSea
+            EtherScan
           </Link> 
           {" "}上查看已铸造的 NFT 
         </p>

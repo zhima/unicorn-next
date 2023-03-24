@@ -11,6 +11,8 @@ export function getChainName(chainId) {
   switch (chainId) {
     case 1: return "以太坊 Ethereum";
     case 4: return "Rinkeby";
+    case 5: return "Goerli";
+    case 11155111: return "Sepolia";
     case 56: return "币安智能链";
     case 137: return "Polygon";
     default: return "Unknown";

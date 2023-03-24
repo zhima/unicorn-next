@@ -79,8 +79,8 @@ const NavBar = () => {
       const accounts = await provider.listAccounts();
       const network = await provider.getNetwork();
       const address = await signer.getAddress();
-      const ens = await provider.lookupAddress(address);
-      const avatar = await provider.getAvatar(address);
+      
+      // const avatar = await provider.getAvatar(address);
       // console.log('accounts:', accounts);
       // console.log('network:', network);
       // console.log('address:', address);
@@ -95,7 +95,13 @@ const NavBar = () => {
         return;
       }
 
-      setAccountName(ens || formatAddress(address));
+      try {
+        const ens = await provider.lookupAddress(address);
+        setAccountName(ens || formatAddress(address));
+      } catch (error) {
+        setAccountName(formatAddress(address));
+      }
+
       store.updateState(address);
 
       if (web3Instance?.on) {
@@ -108,10 +114,11 @@ const NavBar = () => {
               const ens = await provider.lookupAddress(address);
               const avatar = await provider.getAvatar(address);
               setAccountName(ens || formatAddress(address));
-              store.updateState(address);
             } catch (error) {
               console.log('lookupAddress error:', error);
+              setAccountName(formatAddress(address));
             }
+            store.updateState(address);
           } else {
             disconnect();
           }
